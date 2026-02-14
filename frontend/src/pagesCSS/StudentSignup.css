@@ -1,0 +1,133 @@
+.student-signup-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%);
+  padding-bottom: 60px;
+}
+
+.student-signup-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+}
+
+.student-signup-card {
+  width: 100%;
+  max-width: 600px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 50px;
+}
+
+.student-signup-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  margin-bottom: 20px;
+}
+
+.student-signup-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e1b4b;
+  margin: 0 0 10px 0;
+}
+
+.student-signup-subtitle {
+  color: #64748b;
+  margin: 0 0 30px 0;
+}
+
+.student-signup-field {
+  margin-bottom: 20px;
+}
+
+.student-signup-label {
+  display: block;
+  color: #334155;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.student-signup-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.student-signup-input:focus {
+  border-color: #7c3aed;
+}
+
+.student-signup-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-bottom: 25px;
+}
+
+.student-signup-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #7c3aed;
+}
+
+.student-signup-checkbox-text {
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.student-signup-terms {
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+.student-signup-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.student-signup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.35);
+}
+
+.student-signup-footer {
+  text-align: center;
+  color: #64748b;
+  margin-top: 25px;
+}
+
+.student-signup-link {
+  color: #7c3aed;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.student-signup-link:hover {
+  opacity: 0.75;
+}
