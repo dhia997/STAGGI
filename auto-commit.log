@@ -39767,3 +39767,9 @@ To https://github.com/dhia997/STAGGI.git
 To https://github.com/dhia997/STAGGI.git
    491fc27e..e6a52803  main -> main
 [2026-02-15 14:55:01] Changes committed and pushed successfully
+[main bfb1c22e] Auto-commit: 2026-02-15 15:00:01
+ 6 files changed, 579 insertions(+)
+ create mode 100644 frontend/src/components/dashboardRecruiter/RecruiterSidebar.jsx
+To https://github.com/dhia997/STAGGI.git
+   e6a52803..bfb1c22e  main -> main
+[2026-02-15 15:00:01] Changes committed and pushed successfully
