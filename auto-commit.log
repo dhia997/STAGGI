@@ -39758,3 +39758,12 @@ To https://github.com/dhia997/STAGGI.git
 To https://github.com/dhia997/STAGGI.git
    c97fc3e0..491fc27e  main -> main
 [2026-02-15 14:50:02] Changes committed and pushed successfully
+[main e6a52803] Auto-commit: 2026-02-15 14:55:01
+ 5 files changed, 5 insertions(+)
+ create mode 100644 frontend/src/components/dashboardRecruiter/CandidatesTab.jsx
+ create mode 100644 frontend/src/components/dashboardRecruiter/MyJobsTab.jsx
+ create mode 100644 frontend/src/components/dashboardRecruiter/OverviewTab.jsx
+ create mode 100644 frontend/src/components/dashboardRecruiter/PostJobTab.jsx
+To https://github.com/dhia997/STAGGI.git
+   491fc27e..e6a52803  main -> main
+[2026-02-15 14:55:01] Changes committed and pushed successfully
