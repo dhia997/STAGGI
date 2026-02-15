@@ -2,7 +2,7 @@
 
 .recruiter-dashboard {
     min-height: 100vh;
-    background: linear-gradient(135deg, #ffeef8 0%, #ffe0f0 100%);
+    background: linear-gradient(135deg, #fff5fc 0%, #fff0f8 100%);
   }
   
   .dashboard-layout {
@@ -248,6 +248,7 @@
     height: 12px;
     border-radius: 50%;
     margin-top: 5px;
+    flex-shrink: 0;
   }
   
   .activity-dot.application {
@@ -322,6 +323,10 @@
   
   /* ==================== POST JOB TAB ==================== */
   
+  .post-job-tab {
+    max-width: 800px;
+  }
+  
   .job-form {
     background: white;
     padding: 40px;
@@ -350,6 +355,7 @@
     border-radius: 8px;
     font-size: 14px;
     transition: border-color 0.2s;
+    font-family: inherit;
   }
   
   .form-group input:focus,
@@ -398,6 +404,12 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .cancel-btn:hover {
+    border-color: #ec4899;
+    color: #ec4899;
   }
   
   /* ==================== CANDIDATES TAB ==================== */
@@ -416,6 +428,11 @@
     border: 2px solid #e5e7eb;
     border-radius: 8px;
     font-size: 14px;
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: #ec4899;
   }
   
   .filter-buttons {
@@ -442,6 +459,11 @@
     border-color: #ec4899;
   }
   
+  .filter-btn:hover:not(.active) {
+    border-color: #ec4899;
+    color: #ec4899;
+  }
+  
   .results-count {
     color: #6b7280;
     margin-bottom: 20px;
@@ -459,6 +481,12 @@
     padding: 25px;
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+  }
+  
+  .candidate-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(236, 72, 153, 0.1);
   }
   
   .candidate-header {
@@ -597,6 +625,12 @@
     padding: 30px;
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+  }
+  
+  .job-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(236, 72, 153, 0.1);
   }
   
   .job-header {
