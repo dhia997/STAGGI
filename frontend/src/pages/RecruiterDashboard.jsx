@@ -39,7 +39,7 @@ function RecruiterDashboard() {
     }
   ]);
   
-  const [candidates, setCandidates] = useState([
+  const [candidates] = useState([
     {
       id: 1,
       name: 'Ahmed Ben Ali',

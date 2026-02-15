@@ -5,6 +5,7 @@ import StudentLogin from './pages/StudentLogin';
 import StudentDashboard from './pages/Studentdashboard';
 import RecruiterSignup from './pages/RecruiterSignup';
 import RecruiterLogin from './pages/RecruiterLogin';
+import RecruiterDashboard from './pages/RecruiterDashboard';
 
 function App() {
   return (
@@ -27,6 +28,9 @@ function App() {
         
         {/* Page 6 */}
         <Route path="/recruiter/login" element={<RecruiterLogin />} />
+        
+        {/* Page 7 */}
+        <Route path="/recruiter/dashboard" element={<RecruiterDashboard />} />
       </Routes>
     </BrowserRouter>
   );
