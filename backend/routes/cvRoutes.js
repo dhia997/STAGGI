@@ -14,11 +14,25 @@ const upload = multer({
   }
 });
 
-router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), async (req, res) => {
-    console.log('API KEY:', process.env.OPENROUTER_API_KEY);
+// Extraire le vrai texte du PDF
+const extractPDFText = async (buffer) => {
+  const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+  const loadingTask = pdfjsLib.getDocument({ data: buffer });
+  const pdf = await loadingTask.promise;
+  let fullText = '';
 
-  
-  // Init OpenAI ici pour que .env soit bien chargé
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    fullText += pageText + '\n';
+  }
+
+  return fullText;
+};
+
+router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), async (req, res) => {
+
   const openai = new OpenAI({
     baseURL: 'https://openrouter.ai/api/v1',
     apiKey: process.env.OPENROUTER_API_KEY
@@ -27,8 +41,17 @@ router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), a
   try {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
-    const cvText = req.file.buffer.toString('utf-8').slice(0, 3000);
+    // 1. Extraire le vrai texte du PDF
+    const fullText = await extractPDFText(req.file.buffer);
 
+    if (!fullText || fullText.trim().length < 50) {
+      return res.status(400).json({ message: 'CV is empty or unreadable' });
+    }
+
+    // 2. Limiter à 4000 caractères propres pour rester dans les limites du modèle
+    const cvText = fullText.slice(0, 4000);
+
+    // 3. Envoyer à OpenRouter
     const prompt = `You are an expert CV analyzer for internship positions.
 Analyze this CV and respond ONLY with a valid JSON object, no extra text, no markdown:
 {
@@ -49,7 +72,7 @@ CV Content:
 ${cvText}`;
 
     const completion = await openai.chat.completions.create({
-      model:'google/gemma-3-4b-it:free',
+      model: 'google/gemma-3-4b-it:free',
       messages: [{ role: 'user', content: prompt }]
     });
 
@@ -57,6 +80,7 @@ ${cvText}`;
     const cleanJson = responseText.replace(/```json|```/g, '').trim();
     const analysis = JSON.parse(cleanJson);
 
+    // 4. Sauvegarder en MongoDB
     const cv = await CV.create({
       student: req.user._id,
       filename: req.file.originalname,
@@ -65,6 +89,7 @@ ${cvText}`;
       skills: analysis.skills
     });
 
+    // 5. Retourner au frontend
     res.status(201).json({
       success: true,
       cv: {
@@ -94,6 +119,5 @@ router.get('/history', protect, authorizeRole('student'), async (req, res) => {
     res.status(500).json({ message: 'Error fetching CV history' });
   }
 });
-
 
 module.exports = router;
