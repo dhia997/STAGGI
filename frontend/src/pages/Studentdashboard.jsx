@@ -69,22 +69,18 @@ function StudentDashboard() {
   };
 
   // ── Handler clic sur un CV dans la sidebar ────────────
-  // Charge le score + conseils de ce CV sans re-analyser
   const handleCVClick = (cv) => {
     setCvScore(cv.score);
     setCvAdvice(cv.advice || []);
     setCvSkills(cv.skills || []);
     setCvUploaded(true);
     setSelectedCVName(cv.filename || cv.name);
-    setActiveView('scoring'); // va directement au scoring
+    setActiveView('scoring');
   };
 
   // ── Handler clic sur un chat dans la sidebar ─────────
   const handleChatClick = (chat) => {
-    // Si l'historique a des messages sauvegardés, les charger
-    if (chat.messages) {
-      setInitialMessages(chat.messages);
-    }
+    if (chat.messages) setInitialMessages(chat.messages);
     setShowChat(true);
   };
 
@@ -105,7 +101,7 @@ function StudentDashboard() {
       return;
     }
     if (step === 'matching' && cvScore < 60) {
-      alert('⚠️ Your score must be ≥ 60 to see job matches. Check AI Advice first!');
+      alert('⚠️ Your score must be ≥ 60 to see job matches!');
       return;
     }
     setActiveView(step);
@@ -118,7 +114,6 @@ function StudentDashboard() {
     navigate('/');
   };
 
-  // ── Loading ───────────────────────────────────────────
   if (!user) return <div>Loading...</div>;
 
   return (
@@ -165,13 +160,15 @@ function StudentDashboard() {
             </>
           )}
 
-          {/* SCORING VIEW */}
+          {/* SCORING VIEW — score + conseils + skills + bouton matching */}
           {activeView === 'scoring' && (
             <ScoringView
               cvScore={cvScore}
               cvName={selectedCVName}
+              advice={cvAdvice}
+              skills={cvSkills}
               onBack={() => setActiveView('home')}
-              onViewAdvice={() => setActiveView('advice')}
+              onViewMatching={() => setActiveView('matching')}
             />
           )}
 
