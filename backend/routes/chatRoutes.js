@@ -15,18 +15,19 @@ router.post('/message', protect, authorizeRole('student'), async (req, res) => {
 
     if (!message) return res.status(400).json({ message: 'Message is required' });
 
-    // Contexte intégré dans le message user (gemma ne supporte pas system message)
     const systemContext = `You are an expert career coach for Tunisian students looking for internships.
 Help with: CV improvement, interview preparation, and career advice.
 Be friendly, concise, and practical. Respond in the same language as the student (French or English).
 Student name: ${req.user.fullName}.`;
 
-    // Construire l'historique
+    // Garder seulement les messages user de l'historique
+    // gemma-3-4b-it ne supporte pas system role ni commencer par assistant
+    const historyMessages = history
+      .filter(m => m.role === 'user')
+      .map(m => ({ role: 'user', content: m.content }));
+
     const messages = [
-      ...history.map(m => ({
-        role: m.role === 'assistant' ? 'assistant' : 'user',
-        content: m.content
-      })),
+      ...historyMessages,
       {
         role: 'user',
         content: `${systemContext}\n\nStudent message: ${message}`
@@ -34,7 +35,7 @@ Student name: ${req.user.fullName}.`;
     ];
 
     const completion = await openai.chat.completions.create({
-      model:'google/gemma-3-4b-it:free',
+      model: 'google/gemma-3-4b-it:free',
       messages
     });
 
