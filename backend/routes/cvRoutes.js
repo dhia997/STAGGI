@@ -29,7 +29,7 @@ router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), a
     const base64PDF = req.file.buffer.toString('base64');
 
     // 2. Envoyer à Gemini avec le PDF en base64
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     const prompt = `
       You are an expert CV analyzer for internship positions.
