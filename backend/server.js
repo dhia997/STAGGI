@@ -44,4 +44,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT} 🚀`);
 });
-app.use('/api/cv', require('./routes/cvRoutes'));
+app.use('/api/students', require('./routes/studentAuth'));
+app.use('/api/recruiters', require('./routes/recruiterAuth'));
+app.use('/api/cv', require('./routes/cvRoutes'));       // ← nouveau
+app.use('/api/chat', require('./routes/chatRoutes'));   // ← nouveau

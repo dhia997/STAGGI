@@ -68,3 +68,29 @@ export const getCVHistory = async () => {
   if (!res.ok) throw new Error(data.message);
   return data;
 };
+// ─── CV ──────────────────────────────────────────────
+export const uploadCV = async (file) => {
+  const token = localStorage.getItem('token');
+  const formData = new FormData();
+  formData.append('cv', file);
+
+  const res = await fetch(`${BASE_URL}/cv/upload`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: formData
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Upload failed');
+  return data;
+};
+
+export const getCVHistory = async () => {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${BASE_URL}/cv/history`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data;
+};
