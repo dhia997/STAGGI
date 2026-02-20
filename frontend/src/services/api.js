@@ -54,3 +54,12 @@ export const uploadCV = async (file, prompt = '') => {
   if (!res.ok) throw new Error(data.message || 'Upload failed');
   return data;
 };
+export const getCVHistory = async () => {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${BASE_URL}/cv/history`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data;
+};
