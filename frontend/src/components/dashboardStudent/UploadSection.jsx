@@ -5,6 +5,7 @@ function UploadSection({ cvUploaded, cvScore, onUploadSuccess, onReset }) {
   const [dragActive, setDragActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [prompt, setPrompt] = useState('');
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -38,7 +39,8 @@ function UploadSection({ cvUploaded, cvScore, onUploadSuccess, onReset }) {
     setLoading(true);
 
     try {
-      const data = await uploadCV(file);
+      // On envoie le fichier + le prompt personnalisé
+      const data = await uploadCV(file, prompt);
       onUploadSuccess(data.cv);
     } catch (err) {
       setError(err.message || 'Upload failed, try again');
@@ -47,13 +49,13 @@ function UploadSection({ cvUploaded, cvScore, onUploadSuccess, onReset }) {
     }
   };
 
-  // Pendant l'analyse Gemini
+  // Pendant l'analyse
   if (loading) {
     return (
       <div className="upload-card">
         <div className="upload-loading">
           <div style={{ fontSize: '50px', marginBottom: '20px' }}>⏳</div>
-          <h3>Analyzing your CV with Gemini AI...</h3>
+          <h3>Analyzing your CV with AI...</h3>
           <p style={{ color: '#6b7280' }}>This may take a few seconds</p>
         </div>
       </div>
@@ -83,9 +85,40 @@ function UploadSection({ cvUploaded, cvScore, onUploadSuccess, onReset }) {
     );
   }
 
-  // État initial — upload
+  // État initial — upload avec prompt
   return (
     <div className="upload-card">
+
+      {/* PROMPT PERSONNALISÉ */}
+      <div style={{ marginBottom: '20px', padding: '0 10px' }}>
+        <label style={{
+          display: 'block', fontWeight: '600',
+          fontSize: '14px', color: '#374151', marginBottom: '8px'
+        }}>
+          💬 Tell us what you're looking for <span style={{ color: '#9ca3af', fontWeight: '400' }}>(optional)</span>
+        </label>
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Ex: I'm looking for a 3-month web development internship in Tunis. I want to improve my React skills..."
+          rows={3}
+          style={{
+            width: '100%', padding: '10px 14px',
+            border: '2px solid #e5e7eb', borderRadius: '10px',
+            fontSize: '14px', color: '#374151',
+            resize: 'none', outline: 'none',
+            transition: 'border-color 0.2s',
+            boxSizing: 'border-box'
+          }}
+          onFocus={(e) => e.target.style.borderColor = '#7c3aed'}
+          onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+        />
+        <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+          This helps AI give you more personalized advice
+        </p>
+      </div>
+
+      {/* UPLOAD AREA */}
       <div
         className={`upload-area ${dragActive ? 'drag-active' : ''}`}
         onDragEnter={handleDrag}
@@ -115,6 +148,7 @@ function UploadSection({ cvUploaded, cvScore, onUploadSuccess, onReset }) {
           📤 Browse Files
         </label>
       </div>
+
     </div>
   );
 }
