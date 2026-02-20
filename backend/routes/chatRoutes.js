@@ -3,18 +3,19 @@ const router = express.Router();
 const OpenAI = require('openai');
 const { protect, authorizeRole } = require('../middleware/authMiddleware');
 
-const openai = new OpenAI({
-  baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY
-});
-
 router.post('/message', protect, authorizeRole('student'), async (req, res) => {
+
+  // Init OpenAI ici pour que .env soit bien chargé
+  const openai = new OpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: process.env.OPENROUTER_API_KEY
+  });
+
   try {
     const { message, history } = req.body;
 
     if (!message) return res.status(400).json({ message: 'Message is required' });
 
-    // Construire l'historique pour le contexte
     const messages = [
       {
         role: 'system',
@@ -24,12 +25,10 @@ Be friendly, concise, and practical.
 Respond in the same language as the student (French or English).
 Student name: ${req.user.fullName}`
       },
-      // Ajouter l'historique de la conversation
       ...history.map(m => ({
         role: m.role === 'assistant' ? 'assistant' : 'user',
         content: m.content
       })),
-      // Ajouter le nouveau message
       { role: 'user', content: message }
     ];
 

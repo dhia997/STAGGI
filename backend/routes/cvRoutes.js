@@ -14,12 +14,14 @@ const upload = multer({
   }
 });
 
-const openai = new OpenAI({
-  baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY
-});
-
 router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), async (req, res) => {
+  
+  // Init OpenAI ici pour que .env soit bien chargé
+  const openai = new OpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: process.env.OPENROUTER_API_KEY
+  });
+
   try {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
