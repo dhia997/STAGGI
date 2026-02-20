@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const pdfParse = require('pdf-parse/lib/pdf-parse.js');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const CV = require('../models/CV');
 const { protect, authorizeRole } = require('../middleware/authMiddleware');
 
+// ── Multer config ──────────────────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -15,41 +15,57 @@ const upload = multer({
   }
 });
 
+// ── Gemini init ────────────────────────────────────────
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // POST /api/cv/upload
 router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
-
-    // 1. Extraire texte du PDF
-    const pdfData = await pdf(req.file.buffer);
-    const cvText = pdfData.text;
-
-    if (!cvText || cvText.trim().length < 50) {
-      return res.status(400).json({ message: 'CV is empty or unreadable' });
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    // 2. Envoyer à Gemini
+    // 1. Convertir le PDF en base64 — Gemini lit directement le PDF
+    const base64PDF = req.file.buffer.toString('base64');
+
+    // 2. Envoyer à Gemini avec le PDF en base64
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
     const prompt = `
       You are an expert CV analyzer for internship positions.
-      Analyze this CV and respond ONLY with a valid JSON object, no extra text:
+      Analyze this CV document and respond ONLY with a valid JSON object, no extra text, no markdown backticks:
       {
-        "score": <number 0-100>,
-        "skills": [<technical skills found>],
+        "score": <number between 0 and 100>,
+        "skills": [<list of technical skills found>],
         "advice": [<4 to 6 specific improvement tips>],
-        "summary": "<one sentence about the profile>"
+        "summary": "<one sentence about the candidate>"
       }
-      CV Content: ${cvText}
+
+      Scoring criteria:
+      - Technical skills (30%)
+      - Work and project experience (25%)
+      - Education (20%)
+      - CV structure and formatting (15%)
+      - Languages and certifications (10%)
     `;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: 'application/pdf',
+          data: base64PDF
+        }
+      }
+    ]);
+
     const responseText = result.response.text();
+
+    // 3. Nettoyer et parser le JSON
     const cleanJson = responseText.replace(/```json|```/g, '').trim();
     const analysis = JSON.parse(cleanJson);
 
-    // 3. Sauvegarder en MongoDB
+    // 4. Sauvegarder en MongoDB
     const cv = await CV.create({
       student: req.user._id,
       filename: req.file.originalname,
@@ -58,7 +74,7 @@ router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), a
       skills: analysis.skills
     });
 
-    // 4. Retourner au frontend
+    // 5. Retourner au frontend
     res.status(201).json({
       success: true,
       cv: {
@@ -84,9 +100,11 @@ router.get('/history', protect, authorizeRole('student'), async (req, res) => {
     const cvs = await CV.find({ student: req.user._id })
       .sort({ uploadedAt: -1 })
       .limit(10);
+
     res.json({ success: true, cvs });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching history' });
+    console.error('CV History Error:', error);
+    res.status(500).json({ message: 'Error fetching CV history' });
   }
 });
 
