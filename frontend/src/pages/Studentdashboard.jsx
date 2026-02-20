@@ -75,7 +75,7 @@ function StudentDashboard() {
     setCvSkills(cv.skills || []);
     setCvUploaded(true);
     setSelectedCVName(cv.filename || cv.name);
-    setActiveView('scoring');
+    setActiveView('home'); // ← revient à home avec les cercles cliquables
   };
 
   // ── Handler clic sur un chat dans la sidebar ─────────
