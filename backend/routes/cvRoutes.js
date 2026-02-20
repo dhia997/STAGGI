@@ -78,7 +78,7 @@ CV Content:
 ${cvText}`;
 
     const completion = await openai.chat.completions.create({
-      model: 'google/gemma-3-4b-it:free',
+      model:'google/gemma-3-4b-it:free',
       messages: [{ role: 'user', content: prompt }]
     });
 
