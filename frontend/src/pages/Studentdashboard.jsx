@@ -15,37 +15,28 @@ import '../pagesCSS/Studentdashboard.css';
 function StudentDashboard() {
   const navigate = useNavigate();
 
-  // ── États principaux ──────────────────────────────────
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeView, setActiveView] = useState('home');
 
-  // ── États CV ──────────────────────────────────────────
   const [cvUploaded, setCvUploaded] = useState(false);
   const [cvScore, setCvScore] = useState(null);
   const [cvAdvice, setCvAdvice] = useState([]);
   const [cvSkills, setCvSkills] = useState([]);
   const [selectedCVName, setSelectedCVName] = useState('');
 
-  // ── États Chat ────────────────────────────────────────
   const [showChat, setShowChat] = useState(false);
   const [initialMessages, setInitialMessages] = useState(null);
 
-  // ── Historiques ───────────────────────────────────────
   const [cvHistory, setCvHistory] = useState([]);
   const [chatHistory] = useState([]);
 
-  // ── Charger user depuis localStorage ─────────────────
   useEffect(() => {
     const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    } else {
-      navigate('/student/login');
-    }
+    if (userData) setUser(JSON.parse(userData));
+    else navigate('/student/login');
   }, [navigate]);
 
-  // ── Charger CV History depuis MongoDB ─────────────────
   useEffect(() => {
     const loadCVHistory = async () => {
       try {
@@ -58,7 +49,6 @@ function StudentDashboard() {
     loadCVHistory();
   }, []);
 
-  // ── Handler upload réussi ─────────────────────────────
   const handleUploadSuccess = (cvData) => {
     setCvScore(cvData.score);
     setCvAdvice(cvData.advice);
@@ -68,23 +58,20 @@ function StudentDashboard() {
     setCvHistory(prev => [cvData, ...prev]);
   };
 
-  // ── Handler clic sur un CV dans la sidebar ────────────
   const handleCVClick = (cv) => {
     setCvScore(cv.score);
     setCvAdvice(cv.advice || []);
     setCvSkills(cv.skills || []);
     setCvUploaded(true);
     setSelectedCVName(cv.filename || cv.name);
-    setActiveView('home'); // ← revient à home avec les cercles cliquables
+    setActiveView('home');
   };
 
-  // ── Handler clic sur un chat dans la sidebar ─────────
   const handleChatClick = (chat) => {
     if (chat.messages) setInitialMessages(chat.messages);
     setShowChat(true);
   };
 
-  // ── Handler reset ─────────────────────────────────────
   const handleReset = () => {
     setCvUploaded(false);
     setCvScore(null);
@@ -94,7 +81,6 @@ function StudentDashboard() {
     setActiveView('home');
   };
 
-  // ── Handler clics sur les cercles ─────────────────────
   const handleStepClick = (step) => {
     if (!cvUploaded) {
       alert('⚠️ Please upload your CV first');
@@ -107,7 +93,6 @@ function StudentDashboard() {
     setActiveView(step);
   };
 
-  // ── Handler logout ────────────────────────────────────
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -116,13 +101,20 @@ function StudentDashboard() {
 
   if (!user) return <div>Loading...</div>;
 
+  // Données CV pour le chat
+  const cvDataForChat = cvUploaded ? {
+    score: cvScore,
+    skills: cvSkills,
+    advice: cvAdvice,
+    filename: selectedCVName
+  } : null;
+
   return (
     <div className="student-dashboard">
       <Header />
 
       <div className="dashboard-layout">
 
-        {/* SIDEBAR */}
         <Sidebar
           user={user}
           cvHistory={cvHistory}
@@ -134,10 +126,8 @@ function StudentDashboard() {
           onChatClick={handleChatClick}
         />
 
-        {/* MAIN CONTENT */}
         <main className="dashboard-main">
 
-          {/* HOME VIEW */}
           {activeView === 'home' && (
             <>
               <div className="welcome-section">
@@ -160,19 +150,17 @@ function StudentDashboard() {
             </>
           )}
 
-          {/* SCORING VIEW — score + conseils + skills + bouton matching */}
           {activeView === 'scoring' && (
-  <ScoringView
-    cvScore={cvScore}
-    cvName={selectedCVName}
-    skills={cvSkills}
-    onBack={() => setActiveView('home')}
-    onViewAdvice={() => setActiveView('advice')}      // ← nouveau
-    onViewMatching={() => setActiveView('matching')}
-  />
-)}
+            <ScoringView
+              cvScore={cvScore}
+              cvName={selectedCVName}
+              skills={cvSkills}
+              onBack={() => setActiveView('home')}
+              onViewAdvice={() => setActiveView('advice')}
+              onViewMatching={() => setActiveView('matching')}
+            />
+          )}
 
-          {/* ADVICE VIEW */}
           {activeView === 'advice' && (
             <AdviceView
               cvScore={cvScore}
@@ -181,7 +169,6 @@ function StudentDashboard() {
             />
           )}
 
-          {/* MATCHING VIEW */}
           {activeView === 'matching' && cvScore >= 60 && (
             <MatchingView
               skills={cvSkills}
@@ -192,21 +179,17 @@ function StudentDashboard() {
         </main>
       </div>
 
-      {/* CHAT BUTTON FLOTTANT */}
-      <button
-        className="chat-float-btn"
-        onClick={() => setShowChat(!showChat)}
-      >
+      <button className="chat-float-btn" onClick={() => setShowChat(!showChat)}>
         💬
       </button>
 
-      {/* CHAT MODAL */}
       {showChat && (
         <ChatModal
           onClose={() => {
             setShowChat(false);
             setInitialMessages(null);
           }}
+          cvData={cvDataForChat}
           initialMessages={initialMessages}
         />
       )}

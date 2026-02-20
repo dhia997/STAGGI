@@ -3,20 +3,21 @@ import { useState, useEffect, useRef } from 'react';
 
 const BASE_URL = 'http://localhost:5000/api';
 
-function ChatModal({ onClose }) {
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: "Hi! I'm your AI Career Coach powered by Gemini. I can help you improve your CV, prepare for interviews, and find the best internships. How can I help you today? 🎓"
-    }
-  ]);
+function ChatModal({ onClose, cvData, initialMessages }) {
+  const [messages, setMessages] = useState(
+    initialMessages || [
+      {
+        role: 'assistant',
+        content: cvData?.score
+          ? `Hi ${cvData.filename ? '! I can see your CV **' + cvData.filename + '**' : ''}! 🎓 Your CV score is **${cvData.score}/100** and I found these skills: ${cvData.skills?.join(', ')}. I'm ready to help you improve your profile and find the perfect internship. What would you like to know?`
+          : "Hi! I'm your AI Career Coach. Upload your CV first so I can give you personalized advice! How can I help you today? 🎓"
+      }
+    ]
+  );
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  
-  // Pour auto-scroll vers le dernier message
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll chaque fois qu'un nouveau message arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -32,7 +33,6 @@ function ChatModal({ onClose }) {
     try {
       const token = localStorage.getItem('token');
 
-      // Envoie le message au backend → backend appelle Gemini
       const res = await fetch(`${BASE_URL}/chat/message`, {
         method: 'POST',
         headers: {
@@ -41,19 +41,14 @@ function ChatModal({ onClose }) {
         },
         body: JSON.stringify({
           message: input,
-          // Envoie tout l'historique pour que Gemini ait le contexte
-          history: messages.map(m => ({
-            role: m.role,
-            content: m.content
-          }))
+          history: messages,
+          cvData: cvData || null  // envoie les données du CV au backend
         })
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message || 'Error');
 
-      // Ajoute la réponse Gemini
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: data.reply
@@ -85,7 +80,15 @@ function ChatModal({ onClose }) {
           <span style={{ fontSize: '24px' }}>🤖</span>
           <div>
             <h3 style={{ margin: 0, fontSize: '16px' }}>AI Career Coach</h3>
-            <p style={{ margin: 0, fontSize: '11px', color: '#10b981' }}>● Powered by Gemini</p>
+            {cvData?.score ? (
+              <p style={{ margin: 0, fontSize: '11px', color: '#10b981' }}>
+                ● CV Score: {cvData.score}/100
+              </p>
+            ) : (
+              <p style={{ margin: 0, fontSize: '11px', color: '#10b981' }}>
+                ● Powered by Groq AI
+              </p>
+            )}
           </div>
         </div>
         <button className="chat-close" onClick={onClose}>×</button>
@@ -104,7 +107,6 @@ function ChatModal({ onClose }) {
           </div>
         ))}
 
-        {/* Typing indicator pendant que Gemini répond */}
         {loading && (
           <div className="chat-message assistant">
             <div className="message-avatar">🤖</div>
@@ -114,7 +116,6 @@ function ChatModal({ onClose }) {
           </div>
         )}
 
-        {/* Anchor pour le scroll automatique */}
         <div ref={messagesEndRef} />
       </div>
 
@@ -122,7 +123,9 @@ function ChatModal({ onClose }) {
       <div className="chat-input-area">
         <input
           type="text"
-          placeholder="Ask me about your CV or career..."
+          placeholder={cvData?.score
+            ? "Ask about your CV score, advice, or career..."
+            : "Ask me about your career..."}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}
