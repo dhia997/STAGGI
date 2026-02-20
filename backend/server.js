@@ -10,7 +10,7 @@ const app = express();
 // ── Middleware ──────────────────────────────────────────
 app.use(express.json());
 app.use(cors({
-  origin: 'http://localhost:3000', // React dev server
+  origin: 'http://localhost:3000',
   credentials: true
 }));
 
@@ -22,13 +22,15 @@ mongoose.connect(process.env.MONGO_URI)
 // ── Routes ──────────────────────────────────────────────
 app.use('/api/students', require('./routes/studentAuth'));
 app.use('/api/recruiters', require('./routes/recruiterAuth'));
+app.use('/api/cv', require('./routes/cvRoutes'));
+app.use('/api/chat', require('./routes/chatRoutes'));
 
 // ── Health check ────────────────────────────────────────
 app.get('/', (req, res) => {
   res.json({ message: 'STAGII API is running 🚀' });
 });
 
-// ── 404 handler ─────────────────────────────────────────
+// ── 404 handler — doit être EN DERNIER ─────────────────
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
@@ -44,7 +46,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT} 🚀`);
 });
-app.use('/api/students', require('./routes/studentAuth'));
-app.use('/api/recruiters', require('./routes/recruiterAuth'));
-app.use('/api/cv', require('./routes/cvRoutes'));       // ← nouveau
-app.use('/api/chat', require('./routes/chatRoutes'));   // ← nouveau
