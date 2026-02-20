@@ -1,40 +1,36 @@
 const express = require('express');
 const router = express.Router();
-const Groq = require('groq-sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { protect, authorizeRole } = require('../middleware/authMiddleware');
 
 router.post('/message', protect, authorizeRole('student'), async (req, res) => {
 
-  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
   try {
     const { message, history } = req.body;
 
     if (!message) return res.status(400).json({ message: 'Message is required' });
 
-    // Construire l'historique complet avec system message
-    const messages = [
-      {
-        role: 'system',
-        content: `You are an expert career coach for Tunisian students looking for internships.
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      systemInstruction: `You are an expert career coach for Tunisian students looking for internships.
 Help with: CV improvement, interview preparation, and career advice.
-Be friendly, concise, and practical. Respond in the same language as the student (French or English).
+Be friendly, detailed, and practical. Respond in the same language as the student (French or English).
 Student name: ${req.user.fullName}.`
-      },
-      ...history.map(m => ({
-        role: m.role === 'assistant' ? 'assistant' : 'user',
-        content: m.content
-      })),
-      { role: 'user', content: message }
-    ];
-
-    const completion = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
-      messages,
-      temperature: 0.7
     });
 
-    const reply = completion.choices[0].message.content;
+    // Construire l'historique pour Gemini
+    const chatHistory = history
+      .filter(m => m.role !== 'assistant' || history.indexOf(m) !== 0)
+      .map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+
+    const chat = model.startChat({ history: chatHistory });
+    const result = await chat.sendMessage(message);
+    const reply = result.response.text();
 
     res.json({ success: true, reply });
 
