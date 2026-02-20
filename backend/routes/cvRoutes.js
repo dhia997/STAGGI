@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
@@ -32,7 +32,7 @@ const extractPDFText = (buffer) => {
 
 router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), async (req, res) => {
 
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
   try {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
@@ -45,20 +45,13 @@ router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), a
 
     const cvText = fullText.slice(0, 4000);
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
     const prompt = `You are an expert CV analyzer for internship positions.
 Analyze this CV and respond ONLY with a valid JSON object, no extra text, no markdown:
 {
   "score": <number between 0 and 100>,
   "skills": [<list of technical skills found>],
-  "advice": [
-    {
-      "title": "<short title>",
-      "detail": "<2-3 sentences of detailed actionable advice>"
-    }
-  ],
-  "summary": "<2-3 sentences describing the candidate profile, strengths and weaknesses>"
+  "advice": [<4 to 6 detailed and specific improvement tips, each at least 2 sentences>],
+  "summary": "<2-3 sentences describing the candidate profile>"
 }
 
 Scoring criteria:
@@ -68,13 +61,18 @@ Scoring criteria:
 - CV structure and formatting (15%)
 - Languages and certifications (10%)
 
-Be very specific and detailed in your advice — mention exact skills missing, specific improvements needed.
+Be very specific — mention exact missing skills, exact improvements needed based on THIS CV.
 
 CV Content:
 ${cvText}`;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.1-8b-instant',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3
+    });
+
+    const responseText = completion.choices[0].message.content;
     const cleanJson = responseText.replace(/```json|```/g, '').trim();
     const analysis = JSON.parse(cleanJson);
 
