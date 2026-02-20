@@ -15,6 +15,8 @@ const upload = multer({
 });
 
 router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), async (req, res) => {
+    console.log('API KEY:', process.env.OPENROUTER_API_KEY);
+
   
   // Init OpenAI ici pour que .env soit bien chargé
   const openai = new OpenAI({
@@ -92,5 +94,6 @@ router.get('/history', protect, authorizeRole('student'), async (req, res) => {
     res.status(500).json({ message: 'Error fetching CV history' });
   }
 });
+
 
 module.exports = router;
