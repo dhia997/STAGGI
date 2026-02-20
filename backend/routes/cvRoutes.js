@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const pdfParse = require('pdf-parse');
+const pdfParse = require('pdf-parse/lib/pdf-parse.js');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const CV = require('../models/CV');
 const { protect, authorizeRole } = require('../middleware/authMiddleware');
@@ -23,7 +23,7 @@ router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), a
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
     // 1. Extraire texte du PDF
-    const pdfData = await pdfParse(req.file.buffer);
+    const pdfData = await pdf(req.file.buffer);
     const cvText = pdfData.text;
 
     if (!cvText || cvText.trim().length < 50) {
