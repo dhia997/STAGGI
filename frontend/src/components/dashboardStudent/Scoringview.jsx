@@ -1,7 +1,5 @@
 // ScoringView.jsx
-function ScoringView({ cvScore, cvName, advice, skills, onBack, onViewMatching }) {
-
-  const icons = ['💡', '📝', '🎯', '📚', '✨', '🚀'];
+function ScoringView({ cvScore, cvName, skills, onBack, onViewAdvice, onViewMatching }) {
 
   return (
     <div className="step-detail-view">
@@ -9,17 +7,16 @@ function ScoringView({ cvScore, cvName, advice, skills, onBack, onViewMatching }
         ← Back to Dashboard
       </button>
 
-      {/* CV Name */}
       {cvName && (
         <p style={{ color: '#6b7280', marginBottom: '10px', fontSize: '14px' }}>
           📄 {cvName}
         </p>
       )}
 
-      {/* SCORE CIRCLE */}
       <div className="scoring-view">
         <h2>📊 CV Scoring (ATS)</h2>
 
+        {/* SCORE CIRCLE */}
         <div className="score-circle-large">
           <svg width="200" height="200">
             <circle cx="100" cy="100" r="80" stroke="#e5e7eb" strokeWidth="15" fill="none" />
@@ -41,9 +38,9 @@ function ScoringView({ cvScore, cvName, advice, skills, onBack, onViewMatching }
         {/* Score message */}
         <div className="score-message">
           {cvScore >= 60 ? (
-            <p>✅ Good profile! Here are your personalized tips to go further:</p>
+            <p>✅ Good profile! Check AI Advice to improve even further.</p>
           ) : (
-            <p>⚠️ Your CV needs improvement. Follow these recommendations:</p>
+            <p>⚠️ Your CV needs improvement. Check AI Advice for recommendations.</p>
           )}
         </div>
 
@@ -51,15 +48,12 @@ function ScoringView({ cvScore, cvName, advice, skills, onBack, onViewMatching }
         {skills && skills.length > 0 && (
           <div style={{ marginBottom: '30px' }}>
             <h3 style={{ fontSize: '16px', marginBottom: '10px' }}>🛠️ Skills Found in Your CV</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
               {skills.map((skill, idx) => (
                 <span key={idx} style={{
-                  background: '#ede9fe',
-                  color: '#7c3aed',
-                  padding: '4px 12px',
-                  borderRadius: '20px',
-                  fontSize: '13px',
-                  fontWeight: '600'
+                  background: '#ede9fe', color: '#7c3aed',
+                  padding: '4px 12px', borderRadius: '20px',
+                  fontSize: '13px', fontWeight: '600'
                 }}>
                   {skill}
                 </span>
@@ -68,40 +62,30 @@ function ScoringView({ cvScore, cvName, advice, skills, onBack, onViewMatching }
           </div>
         )}
 
-        {/* ADVICE */}
-        {advice && advice.length > 0 && (
-          <div style={{ marginBottom: '30px' }}>
-            <h3 style={{ fontSize: '16px', marginBottom: '15px' }}>💡 AI Recommendations</h3>
-            <div className="advice-cards">
-              {advice.map((tip, index) => (
-                <div key={index} className="advice-card">
-                  <span className="advice-icon">{icons[index] || '💡'}</span>
-                  <p>{tip}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* MATCHING BUTTON — seulement si score >= 60 */}
-        {cvScore >= 60 && (
-          <button
-            onClick={onViewMatching}
-            style={{
-              background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-              color: 'white',
-              border: 'none',
-              padding: '14px 30px',
-              borderRadius: '10px',
-              fontSize: '16px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              marginTop: '10px'
-            }}
-          >
-            🎯 View Matching Jobs →
+        {/* BUTTONS */}
+        <div style={{ display: 'flex', gap: '15px', marginTop: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          
+          <button onClick={onViewAdvice} style={{
+            background: '#f3f4f6', color: '#374151',
+            border: '2px solid #e5e7eb', padding: '12px 24px',
+            borderRadius: '10px', fontSize: '15px',
+            fontWeight: '600', cursor: 'pointer'
+          }}>
+            💡 View AI Advice
           </button>
-        )}
+
+          {cvScore >= 60 && (
+            <button onClick={onViewMatching} style={{
+              background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+              color: 'white', border: 'none', padding: '12px 24px',
+              borderRadius: '10px', fontSize: '15px',
+              fontWeight: '700', cursor: 'pointer'
+            }}>
+              🎯 View Matching Jobs →
+            </button>
+          )}
+
+        </div>
 
       </div>
     </div>

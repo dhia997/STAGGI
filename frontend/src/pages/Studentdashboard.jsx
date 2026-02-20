@@ -162,15 +162,15 @@ function StudentDashboard() {
 
           {/* SCORING VIEW — score + conseils + skills + bouton matching */}
           {activeView === 'scoring' && (
-            <ScoringView
-              cvScore={cvScore}
-              cvName={selectedCVName}
-              advice={cvAdvice}
-              skills={cvSkills}
-              onBack={() => setActiveView('home')}
-              onViewMatching={() => setActiveView('matching')}
-            />
-          )}
+  <ScoringView
+    cvScore={cvScore}
+    cvName={selectedCVName}
+    skills={cvSkills}
+    onBack={() => setActiveView('home')}
+    onViewAdvice={() => setActiveView('advice')}      // ← nouveau
+    onViewMatching={() => setActiveView('matching')}
+  />
+)}
 
           {/* ADVICE VIEW */}
           {activeView === 'advice' && (
