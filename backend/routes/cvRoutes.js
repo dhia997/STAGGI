@@ -27,7 +27,7 @@ router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), a
   try {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
-    const cvText = req.file.buffer.toString('utf-8');
+    const cvText = req.file.buffer.toString('utf-8').slice(0, 3000);
 
     const prompt = `You are an expert CV analyzer for internship positions.
 Analyze this CV and respond ONLY with a valid JSON object, no extra text, no markdown:
@@ -49,7 +49,7 @@ CV Content:
 ${cvText}`;
 
     const completion = await openai.chat.completions.create({
-      model:'mistralai/mistral-7b-instruct:free',
+      model:'google/gemma-3-4b-it:free',
       messages: [{ role: 'user', content: prompt }]
     });
 
