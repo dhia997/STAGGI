@@ -1,4 +1,4 @@
-// StudentDashboard.jsx - Fichier Principal
+// StudentDashboard.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
@@ -18,23 +18,22 @@ function StudentDashboard() {
   // ── États principaux ──────────────────────────────────
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeView, setActiveView] = useState('home'); // 'home' | 'scoring' | 'advice' | 'matching'
+  const [activeView, setActiveView] = useState('home');
 
   // ── États CV ──────────────────────────────────────────
   const [cvUploaded, setCvUploaded] = useState(false);
   const [cvScore, setCvScore] = useState(null);
-  const [cvAdvice, setCvAdvice] = useState([]);   // vrais conseils Gemini
-  const [cvSkills, setCvSkills] = useState([]);   // vraies compétences Gemini
+  const [cvAdvice, setCvAdvice] = useState([]);
+  const [cvSkills, setCvSkills] = useState([]);
+  const [selectedCVName, setSelectedCVName] = useState('');
 
   // ── États Chat ────────────────────────────────────────
   const [showChat, setShowChat] = useState(false);
+  const [initialMessages, setInitialMessages] = useState(null);
 
   // ── Historiques ───────────────────────────────────────
-  const [cvHistory, setCvHistory] = useState([]);        // chargé depuis MongoDB
-  const [chatHistory] = useState([                        // encore mocké
-    { id: 1, title: 'CV Improvement Tips', date: '2025-01-14', preview: 'How can I improve...' },
-    { id: 2, title: 'Interview Preparation', date: '2025-01-12', preview: 'What should I prepare...' }
-  ]);
+  const [cvHistory, setCvHistory] = useState([]);
+  const [chatHistory] = useState([]);
 
   // ── Charger user depuis localStorage ─────────────────
   useEffect(() => {
@@ -46,8 +45,7 @@ function StudentDashboard() {
     }
   }, [navigate]);
 
-  // ── Charger l'historique CV depuis MongoDB ────────────
-  // S'exécute une fois quand le dashboard charge
+  // ── Charger CV History depuis MongoDB ─────────────────
   useEffect(() => {
     const loadCVHistory = async () => {
       try {
@@ -55,24 +53,39 @@ function StudentDashboard() {
         setCvHistory(data.cvs);
       } catch (err) {
         console.error('Error loading CV history:', err);
-        // Si erreur (ex: pas encore de CVs), on garde le tableau vide
       }
     };
-
     loadCVHistory();
-  }, []); // [] = s'exécute une seule fois au montage du composant
+  }, []);
 
-  // ── Handler upload réussi (appelé depuis UploadSection) ──
-  // cvData = { id, filename, score, advice, skills, summary, uploadedAt }
-  // Ces données viennent de Gemini via le backend
+  // ── Handler upload réussi ─────────────────────────────
   const handleUploadSuccess = (cvData) => {
-    setCvScore(cvData.score);         // vrai score Gemini
-    setCvAdvice(cvData.advice);       // vrais conseils Gemini
-    setCvSkills(cvData.skills);       // vraies compétences trouvées
+    setCvScore(cvData.score);
+    setCvAdvice(cvData.advice);
+    setCvSkills(cvData.skills);
     setCvUploaded(true);
-
-    // Ajouter immédiatement à l'historique sans recharger la page
+    setSelectedCVName(cvData.filename);
     setCvHistory(prev => [cvData, ...prev]);
+  };
+
+  // ── Handler clic sur un CV dans la sidebar ────────────
+  // Charge le score + conseils de ce CV sans re-analyser
+  const handleCVClick = (cv) => {
+    setCvScore(cv.score);
+    setCvAdvice(cv.advice || []);
+    setCvSkills(cv.skills || []);
+    setCvUploaded(true);
+    setSelectedCVName(cv.filename || cv.name);
+    setActiveView('scoring'); // va directement au scoring
+  };
+
+  // ── Handler clic sur un chat dans la sidebar ─────────
+  const handleChatClick = (chat) => {
+    // Si l'historique a des messages sauvegardés, les charger
+    if (chat.messages) {
+      setInitialMessages(chat.messages);
+    }
+    setShowChat(true);
   };
 
   // ── Handler reset ─────────────────────────────────────
@@ -81,6 +94,7 @@ function StudentDashboard() {
     setCvScore(null);
     setCvAdvice([]);
     setCvSkills([]);
+    setSelectedCVName('');
     setActiveView('home');
   };
 
@@ -113,7 +127,7 @@ function StudentDashboard() {
 
       <div className="dashboard-layout">
 
-        {/* SIDEBAR — reçoit le vrai historique MongoDB */}
+        {/* SIDEBAR */}
         <Sidebar
           user={user}
           cvHistory={cvHistory}
@@ -121,6 +135,8 @@ function StudentDashboard() {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           onLogout={handleLogout}
+          onCVClick={handleCVClick}
+          onChatClick={handleChatClick}
         />
 
         {/* MAIN CONTENT */}
@@ -134,7 +150,6 @@ function StudentDashboard() {
                 <p>Let's start by uploading your CV to find the perfect internship</p>
               </div>
 
-              {/* UploadSection — maintenant appelle le vrai backend */}
               <UploadSection
                 cvUploaded={cvUploaded}
                 cvScore={cvScore}
@@ -150,15 +165,17 @@ function StudentDashboard() {
             </>
           )}
 
-          {/* SCORING VIEW — vrai score Gemini */}
+          {/* SCORING VIEW */}
           {activeView === 'scoring' && (
             <ScoringView
               cvScore={cvScore}
+              cvName={selectedCVName}
               onBack={() => setActiveView('home')}
+              onViewAdvice={() => setActiveView('advice')}
             />
           )}
 
-          {/* ADVICE VIEW — vrais conseils Gemini */}
+          {/* ADVICE VIEW */}
           {activeView === 'advice' && (
             <AdviceView
               cvScore={cvScore}
@@ -167,7 +184,7 @@ function StudentDashboard() {
             />
           )}
 
-          {/* MATCHING VIEW — seulement si score >= 60 */}
+          {/* MATCHING VIEW */}
           {activeView === 'matching' && cvScore >= 60 && (
             <MatchingView
               skills={cvSkills}
@@ -188,7 +205,13 @@ function StudentDashboard() {
 
       {/* CHAT MODAL */}
       {showChat && (
-        <ChatModal onClose={() => setShowChat(false)} />
+        <ChatModal
+          onClose={() => {
+            setShowChat(false);
+            setInitialMessages(null);
+          }}
+          initialMessages={initialMessages}
+        />
       )}
 
     </div>
