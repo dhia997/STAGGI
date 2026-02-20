@@ -12,7 +12,7 @@ router.post('/message', protect, authorizeRole('student'), async (req, res) => {
 
     if (!message) return res.status(400).json({ message: 'Message is required' });
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 
     // Construire le contexte avec l'historique
     const systemContext = `
