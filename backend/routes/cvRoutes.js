@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const OpenAI = require('openai');
+const os = require('os');
+const path = require('path');
+const fs = require('fs');
 const CV = require('../models/CV');
 const { protect, authorizeRole } = require('../middleware/authMiddleware');
 
@@ -15,20 +18,21 @@ const upload = multer({
 });
 
 // Extraire le vrai texte du PDF
-const extractPDFText = async (buffer) => {
-  const pdfjsLib = require('pdfjs-dist');
-  const loadingTask = pdfjsLib.getDocument({ data: buffer });
-  const pdf = await loadingTask.promise;
-  let fullText = '';
+const extractPDFText = (buffer) => {
+  return new Promise((resolve, reject) => {
+    const extract = require('pdf-text-extract');
 
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    const pageText = content.items.map(item => item.str).join(' ');
-    fullText += pageText + '\n';
-  }
+    // Sauvegarder temporairement le buffer comme fichier
+    const tmpPath = path.join(os.tmpdir(), `cv_${Date.now()}.pdf`);
+    fs.writeFileSync(tmpPath, buffer);
 
-  return fullText;
+    extract(tmpPath, (err, pages) => {
+      // Supprimer le fichier temporaire
+      try { fs.unlinkSync(tmpPath); } catch(e) {}
+      if (err) reject(err);
+      else resolve(pages.join('\n'));
+    });
+  });
 };
 
 router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), async (req, res) => {
@@ -48,7 +52,7 @@ router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), a
       return res.status(400).json({ message: 'CV is empty or unreadable' });
     }
 
-    // 2. Limiter à 4000 caractères propres pour rester dans les limites du modèle
+    // 2. Limiter à 4000 caractères pour rester dans les limites du modèle
     const cvText = fullText.slice(0, 4000);
 
     // 3. Envoyer à OpenRouter
