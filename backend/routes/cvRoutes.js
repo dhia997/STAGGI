@@ -16,7 +16,7 @@ const upload = multer({
 
 // Extraire le vrai texte du PDF
 const extractPDFText = async (buffer) => {
-  const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+  const pdfjsLib = require('pdfjs-dist');
   const loadingTask = pdfjsLib.getDocument({ data: buffer });
   const pdf = await loadingTask.promise;
   let fullText = '';
