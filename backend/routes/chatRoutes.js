@@ -33,7 +33,7 @@ Student name: ${req.user.fullName}`
     ];
 
     const completion = await openai.chat.completions.create({
-      model: 'meta-llama/llama-3.1-8b-instruct:free',
+      model: 'mistralai/mistral-7b-instruct:free',
       messages
     });
 
