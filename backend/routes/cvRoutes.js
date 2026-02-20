@@ -22,12 +22,10 @@ const extractPDFText = (buffer) => {
   return new Promise((resolve, reject) => {
     const extract = require('pdf-text-extract');
 
-    // Sauvegarder temporairement le buffer comme fichier
     const tmpPath = path.join(os.tmpdir(), `cv_${Date.now()}.pdf`);
     fs.writeFileSync(tmpPath, buffer);
 
     extract(tmpPath, (err, pages) => {
-      // Supprimer le fichier temporaire
       try { fs.unlinkSync(tmpPath); } catch(e) {}
       if (err) reject(err);
       else resolve(pages.join('\n'));
@@ -47,6 +45,10 @@ router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), a
 
     // 1. Extraire le vrai texte du PDF
     const fullText = await extractPDFText(req.file.buffer);
+
+    // DEBUG — voir ce qui est extrait
+    console.log('EXTRACTED TEXT:', fullText.slice(0, 500));
+    console.log('TEXT LENGTH:', fullText.length);
 
     if (!fullText || fullText.trim().length < 50) {
       return res.status(400).json({ message: 'CV is empty or unreadable' });
@@ -81,6 +83,8 @@ ${cvText}`;
     });
 
     const responseText = completion.choices[0].message.content;
+    console.log('GEMINI RESPONSE:', responseText);
+
     const cleanJson = responseText.replace(/```json|```/g, '').trim();
     const analysis = JSON.parse(cleanJson);
 
