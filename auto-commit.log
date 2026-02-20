@@ -40897,3 +40897,9 @@ To https://github.com/dhia997/STAGGI.git
 To https://github.com/dhia997/STAGGI.git
    9311b55f..03e109de  main -> main
 [2026-02-20 21:30:01] Changes committed and pushed successfully
+[main 3c251f6c] Auto-commit: 2026-02-20 21:35:01
+ 2 files changed, 6 insertions(+)
+ create mode 100644 backend/.gitignore
+To https://github.com/dhia997/STAGGI.git
+   4cb5fa2c..3c251f6c  main -> main
+[2026-02-20 21:35:01] Changes committed and pushed successfully
