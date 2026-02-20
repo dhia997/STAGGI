@@ -113,5 +113,15 @@ router.get('/history', protect, authorizeRole('student'), async (req, res) => {
     res.status(500).json({ message: 'Error fetching CV history' });
   }
 });
+// GET /api/cv/:id
+router.get('/:id', protect, authorizeRole('student'), async (req, res) => {
+    try {
+      const cv = await CV.findById(req.params.id);
+      if (!cv) return res.status(404).json({ message: 'CV not found' });
+      res.json({ success: true, cv });
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching CV' });
+    }
+  });
 
 module.exports = router;
