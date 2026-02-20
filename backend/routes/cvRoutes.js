@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 const CV = require('../models/CV');
 const { protect, authorizeRole } = require('../middleware/authMiddleware');
 
-// ── Multer config ──────────────────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -15,57 +14,45 @@ const upload = multer({
   }
 });
 
-// ── Gemini init ────────────────────────────────────────
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const openai = new OpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: process.env.OPENROUTER_API_KEY
+});
 
-// POST /api/cv/upload
 router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-    }
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
-    // 1. Convertir le PDF en base64 — Gemini lit directement le PDF
-    const base64PDF = req.file.buffer.toString('base64');
+    const cvText = req.file.buffer.toString('utf-8');
 
-    // 2. Envoyer à Gemini avec le PDF en base64
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+    const prompt = `You are an expert CV analyzer for internship positions.
+Analyze this CV and respond ONLY with a valid JSON object, no extra text, no markdown:
+{
+  "score": <number between 0 and 100>,
+  "skills": [<list of technical skills found>],
+  "advice": [<4 to 6 specific improvement tips>],
+  "summary": "<one sentence about the candidate>"
+}
 
-    const prompt = `
-      You are an expert CV analyzer for internship positions.
-      Analyze this CV document and respond ONLY with a valid JSON object, no extra text, no markdown backticks:
-      {
-        "score": <number between 0 and 100>,
-        "skills": [<list of technical skills found>],
-        "advice": [<4 to 6 specific improvement tips>],
-        "summary": "<one sentence about the candidate>"
-      }
+Scoring criteria:
+- Technical skills (30%)
+- Work and project experience (25%)
+- Education (20%)
+- CV structure and formatting (15%)
+- Languages and certifications (10%)
 
-      Scoring criteria:
-      - Technical skills (30%)
-      - Work and project experience (25%)
-      - Education (20%)
-      - CV structure and formatting (15%)
-      - Languages and certifications (10%)
-    `;
+CV Content:
+${cvText}`;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: 'application/pdf',
-          data: base64PDF
-        }
-      }
-    ]);
+    const completion = await openai.chat.completions.create({
+      model: 'meta-llama/llama-3.1-8b-instruct:free',
+      messages: [{ role: 'user', content: prompt }]
+    });
 
-    const responseText = result.response.text();
-
-    // 3. Nettoyer et parser le JSON
+    const responseText = completion.choices[0].message.content;
     const cleanJson = responseText.replace(/```json|```/g, '').trim();
     const analysis = JSON.parse(cleanJson);
 
-    // 4. Sauvegarder en MongoDB
     const cv = await CV.create({
       student: req.user._id,
       filename: req.file.originalname,
@@ -74,7 +61,6 @@ router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), a
       skills: analysis.skills
     });
 
-    // 5. Retourner au frontend
     res.status(201).json({
       success: true,
       cv: {
@@ -94,16 +80,13 @@ router.post('/upload', protect, authorizeRole('student'), upload.single('cv'), a
   }
 });
 
-// GET /api/cv/history
 router.get('/history', protect, authorizeRole('student'), async (req, res) => {
   try {
     const cvs = await CV.find({ student: req.user._id })
       .sort({ uploadedAt: -1 })
       .limit(10);
-
     res.json({ success: true, cvs });
   } catch (error) {
-    console.error('CV History Error:', error);
     res.status(500).json({ message: 'Error fetching CV history' });
   }
 });
