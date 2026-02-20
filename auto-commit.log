@@ -40718,3 +40718,9 @@ To https://github.com/dhia997/STAGGI.git
 To https://github.com/dhia997/STAGGI.git
    fa02cd73..4f4f9f12  main -> main
 [2026-02-20 11:35:01] Changes committed and pushed successfully
+[main 94cb9940] Auto-commit: 2026-02-20 11:40:01
+ 2 files changed, 56 insertions(+)
+ create mode 100644 backend/models/authMiddleware.js
+To https://github.com/dhia997/STAGGI.git
+   4f4f9f12..94cb9940  main -> main
+[2026-02-20 11:40:01] Changes committed and pushed successfully
