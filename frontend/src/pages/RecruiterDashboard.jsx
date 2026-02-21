@@ -1,4 +1,4 @@
-// RecruiterDashboard.jsx - Page principale Recruteur
+// RecruiterDashboard.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
@@ -9,114 +9,139 @@ import CandidatesTab from '../components/dashboardRecruiter/CandidatesTab';
 import MyJobsTab from '../components/dashboardRecruiter/MyJobsTab';
 import '../pagesCSS/RecruiterDashboard.css';
 
+const BASE_URL = 'http://localhost:5000/api';
+
 function RecruiterDashboard() {
   const navigate = useNavigate();
-  
-  // États
+
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'postJob', 'candidates', 'myJobs'
-  
-  // Mock data (sera remplacé par backend)
-  const [postedJobs, setPostedJobs] = useState([
-    { 
-      id: 1, 
-      title: 'Frontend Developer Intern', 
-      applicants: 12, 
-      posted: '2025-01-20',
-      status: 'active',
-      location: 'Tunis',
-      duration: '3 months'
-    },
-    { 
-      id: 2, 
-      title: 'UI/UX Designer Intern', 
-      applicants: 8, 
-      posted: '2025-01-18',
-      status: 'active',
-      location: 'Sfax',
-      duration: '3 months'
-    }
-  ]);
-  
-  const [candidates] = useState([
-    {
-      id: 1,
-      name: 'Ahmed Ben Ali',
-      email: 'ahmed@email.com',
-      university: 'INSAT',
-      field: 'Computer Science',
-      score: 85,
-      skills: ['React', 'JavaScript', 'Node.js'],
-      cv: 'ahmed_cv.pdf'
-    },
-    {
-      id: 2,
-      name: 'Fatma Karoui',
-      email: 'fatma@email.com',
-      university: 'ESPRIT',
-      field: 'Software Engineering',
-      score: 78,
-      skills: ['Python', 'Django', 'SQL'],
-      cv: 'fatma_cv.pdf'
-    },
-    {
-      id: 3,
-      name: 'Mohamed Trabelsi',
-      email: 'mohamed@email.com',
-      university: 'FST',
-      field: 'Data Science',
-      score: 92,
-      skills: ['Python', 'ML', 'TensorFlow'],
-      cv: 'mohamed_cv.pdf'
-    }
-  ]);
-  
-  // Charger le user
+  const [activeTab, setActiveTab] = useState('overview');
+  const [loading, setLoading] = useState(false);
+
+  const [postedJobs, setPostedJobs] = useState([]);
+  const [candidates, setCandidates] = useState([]);
+
   useEffect(() => {
     const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    } else {
-      navigate('/recruiter/login');
-    }
+    if (userData) setUser(JSON.parse(userData));
+    else navigate('/recruiter/login');
   }, [navigate]);
-  
-  // Handler pour logout
+
+  // Charger jobs et candidates depuis MongoDB
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+
+        // Charger mes jobs
+        const jobsRes = await fetch(`${BASE_URL}/jobs/my`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const jobsData = await jobsRes.json();
+        if (jobsData.success) setPostedJobs(jobsData.jobs);
+
+        // Charger les candidats
+        const candidatesRes = await fetch(`${BASE_URL}/jobs/candidates`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const candidatesData = await candidatesRes.json();
+        if (candidatesData.success) setCandidates(candidatesData.candidates);
+
+      } catch (err) {
+        console.error('Error loading recruiter data:', err);
+      }
+    };
+    loadData();
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/');
   };
-  
-  // Handler pour poster un job
-  const handlePostJob = (jobData) => {
-    const newJob = {
-      id: postedJobs.length + 1,
-      ...jobData,
-      applicants: 0,
-      posted: new Date().toISOString().split('T')[0],
-      status: 'active'
-    };
-    setPostedJobs([newJob, ...postedJobs]);
-    setActiveTab('myJobs');
+
+  // Poster un job vers MongoDB
+  const handlePostJob = async (jobData) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+
+      const res = await fetch(`${BASE_URL}/jobs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(jobData)
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setPostedJobs(prev => [data.job, ...prev]);
+        setActiveTab('myJobs');
+      }
+    } catch (err) {
+      console.error('Error posting job:', err);
+      alert('❌ Error posting job. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
-  
-  // Handler pour supprimer un job
-  const handleDeleteJob = (jobId) => {
-    setPostedJobs(postedJobs.filter(job => job.id !== jobId));
+
+  // Supprimer un job depuis MongoDB
+  const handleDeleteJob = async (jobId) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      const res = await fetch(`${BASE_URL}/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setPostedJobs(prev => prev.filter(job => job._id !== jobId));
+      }
+    } catch (err) {
+      console.error('Error deleting job:', err);
+    }
   };
-  
-  // Loading state
+
+  // Changer le statut d'un job
+  const handleToggleStatus = async (jobId, currentStatus) => {
+    try {
+      const token = localStorage.getItem('token');
+      const newStatus = currentStatus === 'active' ? 'closed' : 'active';
+
+      const res = await fetch(`${BASE_URL}/jobs/${jobId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setPostedJobs(prev =>
+          prev.map(job => job._id === jobId ? { ...job, status: newStatus } : job)
+        );
+      }
+    } catch (err) {
+      console.error('Error toggling job status:', err);
+    }
+  };
+
   if (!user) return <div>Loading...</div>;
-  
+
   return (
     <div className="recruiter-dashboard">
       <Header />
-      
+
       <div className="dashboard-layout">
-        
-        {/* SIDEBAR */}
+
         <RecruiterSidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
@@ -125,36 +150,36 @@ function RecruiterDashboard() {
           setActiveTab={setActiveTab}
           onLogout={handleLogout}
         />
-        
-        {/* MAIN CONTENT */}
+
         <main className="dashboard-main">
-          
-          {/* OVERVIEW TAB */}
+
           {activeTab === 'overview' && (
-            <OverviewTab 
+            <OverviewTab
               postedJobs={postedJobs}
               candidates={candidates}
+              onNavigate={setActiveTab}
             />
           )}
-          
-          {/* POST JOB TAB */}
+
           {activeTab === 'postJob' && (
-            <PostJobTab onPostJob={handlePostJob} />
+            <PostJobTab
+              onPostJob={handlePostJob}
+              loading={loading}
+            />
           )}
-          
-          {/* CANDIDATES TAB */}
+
           {activeTab === 'candidates' && (
             <CandidatesTab candidates={candidates} />
           )}
-          
-          {/* MY JOBS TAB */}
+
           {activeTab === 'myJobs' && (
-            <MyJobsTab 
+            <MyJobsTab
               jobs={postedJobs}
               onDeleteJob={handleDeleteJob}
+              onToggleStatus={handleToggleStatus}
             />
           )}
-          
+
         </main>
       </div>
     </div>

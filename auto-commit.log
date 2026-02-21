@@ -41114,3 +41114,9 @@ To https://github.com/dhia997/STAGGI.git
 To https://github.com/dhia997/STAGGI.git
    149f9a40..06b090c8  main -> main
 [2026-02-21 01:05:02] Changes committed and pushed successfully
+[main 1dea4543] Auto-commit: 2026-02-21 01:10:01
+ 2 files changed, 26 insertions(+)
+ create mode 100644 backend/models/Job.js
+To https://github.com/dhia997/STAGGI.git
+   06b090c8..1dea4543  main -> main
+[2026-02-21 01:10:01] Changes committed and pushed successfully
