@@ -27,7 +27,6 @@ function CandidatesTab({ candidates }) {
       <h1>👥 Browse Candidates</h1>
       <p className="tab-subtitle">Find the perfect match for your internship</p>
 
-      {/* Filters */}
       <div className="filters-section">
         <input
           type="text"
@@ -47,11 +46,9 @@ function CandidatesTab({ candidates }) {
         Showing {filteredCandidates.length} candidate{filteredCandidates.length !== 1 ? 's' : ''}
       </p>
 
-      {/* Candidates Grid */}
       <div className="candidates-grid">
         {filteredCandidates.map(candidate => (
           <div key={candidate.id} className="candidate-card">
-
             <div className="candidate-header">
               <div className="candidate-avatar">{candidate.name[0].toUpperCase()}</div>
               <div className="candidate-info">
@@ -77,14 +74,9 @@ function CandidatesTab({ candidates }) {
             </div>
 
             <div className="candidate-actions">
-              <button className="view-cv-btn" onClick={() => setCvModal(candidate)}>
-                📄 View CV
-              </button>
-              <button className="contact-btn" onClick={() => setContactModal(candidate)}>
-                ✉️ Contact
-              </button>
+              <button className="view-cv-btn" onClick={() => setCvModal(candidate)}>📄 View CV</button>
+              <button className="contact-btn" onClick={() => setContactModal(candidate)}>✉️ Contact</button>
             </div>
-
           </div>
         ))}
       </div>
@@ -101,17 +93,15 @@ function CandidatesTab({ candidates }) {
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(0,0,0,0.5)', display: 'flex',
           alignItems: 'center', justifyContent: 'center', zIndex: 1000
-        }}>
+        }} onClick={() => setCvModal(null)}>
           <div style={{
-            background: 'white', borderRadius: '16px',
-            padding: '30px', maxWidth: '500px', width: '90%',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-          }}>
+            background: 'white', borderRadius: '16px', padding: '30px',
+            maxWidth: '500px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          }} onClick={e => e.stopPropagation()}>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ margin: 0 }}>📄 CV Details</h2>
-              <button onClick={() => setCvModal(null)} style={{
-                background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer'
-              }}>×</button>
+              <button onClick={() => setCvModal(null)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
@@ -130,13 +120,14 @@ function CandidatesTab({ candidates }) {
             </div>
 
             <div style={{ background: '#f9fafb', borderRadius: '10px', padding: '15px', marginBottom: '15px' }}>
-              <p><strong>🎓 University:</strong> {cvModal.university}</p>
-              <p><strong>📚 Field:</strong> {cvModal.field}</p>
-              <p><strong>📄 CV File:</strong> {cvModal.cvFilename || 'Not available'}</p>
+              <p style={{ margin: '0 0 8px' }}><strong>🎓 University:</strong> {cvModal.university}</p>
+              <p style={{ margin: '0 0 8px' }}><strong>📚 Field:</strong> {cvModal.field}</p>
+              <p style={{ margin: '0 0 8px' }}><strong>📄 CV File:</strong> {cvModal.cvFilename || 'Not available'}</p>
               <p style={{ margin: 0 }}>
                 <strong>🏆 CV Score:</strong>
                 <span style={{
-                  marginLeft: '8px', background: cvModal.score >= 60 ? '#d1fae5' : '#fee2e2',
+                  marginLeft: '8px',
+                  background: cvModal.score >= 60 ? '#d1fae5' : '#fee2e2',
                   color: cvModal.score >= 60 ? '#065f46' : '#991b1b',
                   padding: '2px 10px', borderRadius: '20px', fontWeight: '700'
                 }}>
@@ -158,7 +149,7 @@ function CandidatesTab({ candidates }) {
             </div>
 
             <button
-              onClick={() => setContactModal(cvModal)}
+              onClick={() => { setCvModal(null); setContactModal(cvModal); }}
               style={{
                 width: '100%', background: 'linear-gradient(135deg, #ec4899, #be185d)',
                 color: 'white', border: 'none', padding: '12px',
@@ -177,20 +168,18 @@ function CandidatesTab({ candidates }) {
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(0,0,0,0.5)', display: 'flex',
           alignItems: 'center', justifyContent: 'center', zIndex: 1000
-        }}>
+        }} onClick={() => setContactModal(null)}>
           <div style={{
-            background: 'white', borderRadius: '16px',
-            padding: '30px', maxWidth: '450px', width: '90%',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-          }}>
+            background: 'white', borderRadius: '16px', padding: '30px',
+            maxWidth: '450px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          }} onClick={e => e.stopPropagation()}>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ margin: 0 }}>✉️ Contact Candidate</h2>
-              <button onClick={() => setContactModal(null)} style={{
-                background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer'
-              }}>×</button>
+              <button onClick={() => setContactModal(null)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
             </div>
 
-            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ textAlign: 'center', padding: '10px 0 20px' }}>
               <div style={{
                 width: '70px', height: '70px', borderRadius: '50%',
                 background: 'linear-gradient(135deg, #ec4899, #be185d)',
@@ -201,22 +190,26 @@ function CandidatesTab({ candidates }) {
                 {contactModal.name[0].toUpperCase()}
               </div>
               <h3 style={{ margin: '0 0 5px' }}>{contactModal.name}</h3>
-              <p style={{ color: '#6b7280', margin: '0 0 20px' }}>{contactModal.university}</p>
+              <p style={{ color: '#6b7280', margin: '0 0 25px' }}>{contactModal.university}</p>
 
+              {/* Ouvre Gmail directement */}
               <a
-                href=subject=Internship Opportunity - STAGII&body=Hello ${contactModal.name},%0D%0A%0D%0AI found your profile on STAGII and would like to discuss an internship opportunity with you.%0D%0A%0D%0ABest regards`}
+                href={`https://mail.google.com/mail/?view=cm&to=${contactModal.email}&su=Internship Opportunity - STAGII&body=Hello ${contactModal.name},%0D%0A%0D%0AI found your profile on STAGII and would like to discuss an internship opportunity with you.%0D%0A%0D%0ABest regards`}
+                target="_blank"
+                rel="noreferrer"
                 style={{
-                  display: 'block', background: 'linear-gradient(135deg, #ec4899, #be185d)',
+                  display: 'block',
+                  background: 'linear-gradient(135deg, #ec4899, #be185d)',
                   color: 'white', padding: '14px 30px', borderRadius: '10px',
                   textDecoration: 'none', fontWeight: '700', fontSize: '15px',
                   marginBottom: '10px'
                 }}
               >
-                📧 Send Email to {contactModal.email}
+                📧 Open Gmail — {contactModal.email}
               </a>
 
               <p style={{ color: '#9ca3af', fontSize: '12px', marginTop: '10px' }}>
-                This will open your email client
+                Opens Gmail in a new tab with a pre-written message
               </p>
             </div>
           </div>
