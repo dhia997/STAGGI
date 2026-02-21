@@ -25,6 +25,7 @@ app.use('/api/recruiters', require('./routes/recruiterAuth'));
 app.use('/api/cv', require('./routes/cvRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
+app.use('/api/applications', require('./routes/applicationRoutes'));
 // ── Health check ────────────────────────────────────────
 app.get('/', (req, res) => {
   res.json({ message: 'STAGII API is running 🚀' });

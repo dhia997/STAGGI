@@ -41196,3 +41196,10 @@ To https://github.com/dhia997/STAGGI.git
 To https://github.com/dhia997/STAGGI.git
    f93432df..d289627b  main -> main
 [2026-02-22 00:05:02] Changes committed and pushed successfully
+[main bd6c6219] Auto-commit: 2026-02-22 00:10:01
+ 3 files changed, 5 insertions(+)
+ create mode 100644 backend/models/ Application.js
+ create mode 100644 backend/routes/applicationRoutes.js
+To https://github.com/dhia997/STAGGI.git
+   d289627b..bd6c6219  main -> main
+[2026-02-22 00:10:01] Changes committed and pushed successfully

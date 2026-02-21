@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react';
 
 const BASE_URL = 'http://localhost:5000/api';
 
-function MatchingView({ skills, onBack }) {
+function MatchingView({ skills, cvScore, onBack }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [applied, setApplied] = useState({}); // track applied jobs
 
   useEffect(() => {
     const loadJobs = async () => {
@@ -17,12 +18,10 @@ function MatchingView({ skills, onBack }) {
         const data = await res.json();
 
         if (data.success && data.jobs.length > 0) {
-          // Calculer le match score pour chaque job basé sur les skills du CV
           const jobsWithMatch = data.jobs.map(job => {
             const jobSkills = job.skills || [];
             const studentSkills = skills || [];
 
-            // Compter les skills en commun (insensible à la casse)
             const matchingSkills = jobSkills.filter(jobSkill =>
               studentSkills.some(s =>
                 s.toLowerCase().includes(jobSkill.toLowerCase()) ||
@@ -36,12 +35,11 @@ function MatchingView({ skills, onBack }) {
 
             return {
               ...job,
-              match: Math.min(matchScore + 30, 99), // boost de base
+              match: Math.min(matchScore + 30, 99),
               matchingSkills
             };
           });
 
-          // Trier par match score
           jobsWithMatch.sort((a, b) => b.match - a.match);
           setJobs(jobsWithMatch);
         } else {
@@ -58,17 +56,43 @@ function MatchingView({ skills, onBack }) {
     loadJobs();
   }, [skills]);
 
+  const handleApply = async (job) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${BASE_URL}/applications`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          jobId: job._id,
+          cvScore: cvScore,
+          skills: skills
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setApplied(prev => ({ ...prev, [job._id]: 'applied' }));
+      } else if (data.message === 'Already applied to this job') {
+        setApplied(prev => ({ ...prev, [job._id]: 'already' }));
+      } else {
+        alert('❌ Error applying. Please try again.');
+      }
+    } catch (err) {
+      alert('❌ Error applying. Please try again.');
+    }
+  };
+
   return (
     <div className="step-detail-view">
-      <button className="back-btn" onClick={onBack}>
-        ← Back to Dashboard
-      </button>
+      <button className="back-btn" onClick={onBack}>← Back to Dashboard</button>
 
       <div className="matching-view">
         <h2>🎯 Job Matching Results</h2>
-        <p className="matching-intro">
-          Based on your CV skills, here are the best internship matches for you:
-        </p>
+        <p className="matching-intro">Based on your CV skills, here are the best internship matches:</p>
 
         {loading && (
           <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
@@ -120,21 +144,41 @@ function MatchingView({ skills, onBack }) {
                           color: job.matchingSkills?.some(s =>
                             s.toLowerCase() === skill.toLowerCase()
                           ) ? '#065f46' : '#374151',
-                          padding: '3px 10px', borderRadius: '20px',
-                          fontSize: '12px', fontWeight: '600'
+                          padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600'
                         }}>
                           {skill}
                         </span>
                       ))}
                     </div>
-                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '5px' }}>
-                      ✅ Green = matches your CV skills
-                    </p>
                   </div>
                 )}
               </div>
 
-              <button className="apply-btn">Apply Now →</button>
+              {/* APPLY BUTTON */}
+              {applied[job._id] === 'applied' ? (
+                <div style={{
+                  background: '#d1fae5', color: '#065f46',
+                  padding: '12px', borderRadius: '10px',
+                  textAlign: 'center', fontWeight: '700'
+                }}>
+                  ✅ Application Sent! Recruiter notified.
+                </div>
+              ) : applied[job._id] === 'already' ? (
+                <div style={{
+                  background: '#fef3c7', color: '#92400e',
+                  padding: '12px', borderRadius: '10px',
+                  textAlign: 'center', fontWeight: '700'
+                }}>
+                  ⚠️ Already Applied
+                </div>
+              ) : (
+                <button
+                  className="apply-btn"
+                  onClick={() => handleApply(job)}
+                >
+                  Apply Now →
+                </button>
+              )}
             </div>
           ))}
         </div>
