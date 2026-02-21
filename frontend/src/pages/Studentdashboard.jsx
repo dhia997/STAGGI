@@ -12,6 +12,8 @@ import ChatModal from '../components/dashboardStudent/ChatModal';
 import { getCVHistory } from '../services/api';
 import '../pagesCSS/Studentdashboard.css';
 
+const BASE_URL = 'http://localhost:5000/api';
+
 function StudentDashboard() {
   const navigate = useNavigate();
 
@@ -26,10 +28,10 @@ function StudentDashboard() {
   const [selectedCVName, setSelectedCVName] = useState('');
 
   const [showChat, setShowChat] = useState(false);
-  const [initialMessages, setInitialMessages] = useState(null);
+  const [selectedChat, setSelectedChat] = useState(null); // chat sélectionné depuis sidebar
 
   const [cvHistory, setCvHistory] = useState([]);
-  const [chatHistory] = useState([]);
+  const [chatHistory, setChatHistory] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -38,15 +40,26 @@ function StudentDashboard() {
   }, [navigate]);
 
   useEffect(() => {
-    const loadCVHistory = async () => {
+    const loadHistory = async () => {
       try {
-        const data = await getCVHistory();
-        setCvHistory(data.cvs);
+        const token = localStorage.getItem('token');
+
+        // Charger CV history
+        const cvData = await getCVHistory();
+        setCvHistory(cvData.cvs);
+
+        // Charger Chat history
+        const chatRes = await fetch(`${BASE_URL}/chat/history`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const chatData = await chatRes.json();
+        if (chatData.success) setChatHistory(chatData.chats);
+
       } catch (err) {
-        console.error('Error loading CV history:', err);
+        console.error('Error loading history:', err);
       }
     };
-    loadCVHistory();
+    loadHistory();
   }, []);
 
   const handleUploadSuccess = (cvData) => {
@@ -67,9 +80,21 @@ function StudentDashboard() {
     setActiveView('home');
   };
 
-  const handleChatClick = (chat) => {
-    if (chat.messages) setInitialMessages(chat.messages);
-    setShowChat(true);
+  // Quand on clique sur un chat — charge la conversation complète
+  const handleChatClick = async (chat) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${BASE_URL}/chat/${chat._id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSelectedChat(data.chat);
+        setShowChat(true);
+      }
+    } catch (err) {
+      console.error('Error loading chat:', err);
+    }
   };
 
   const handleReset = () => {
@@ -99,9 +124,24 @@ function StudentDashboard() {
     navigate('/');
   };
 
+  // Refresh chat history après fermeture du chat
+  const handleChatClose = async () => {
+    setShowChat(false);
+    setSelectedChat(null);
+    try {
+      const token = localStorage.getItem('token');
+      const chatRes = await fetch(`${BASE_URL}/chat/history`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const chatData = await chatRes.json();
+      if (chatData.success) setChatHistory(chatData.chats);
+    } catch (err) {
+      console.error('Error refreshing chat history:', err);
+    }
+  };
+
   if (!user) return <div>Loading...</div>;
 
-  // Données CV pour le chat
   const cvDataForChat = cvUploaded ? {
     score: cvScore,
     skills: cvSkills,
@@ -134,14 +174,12 @@ function StudentDashboard() {
                 <h1>Welcome to STAGII! 👋</h1>
                 <p>Let's start by uploading your CV to find the perfect internship</p>
               </div>
-
               <UploadSection
                 cvUploaded={cvUploaded}
                 cvScore={cvScore}
                 onUploadSuccess={handleUploadSuccess}
                 onReset={handleReset}
               />
-
               <StepsCircles
                 cvUploaded={cvUploaded}
                 activeStep={activeView}
@@ -179,18 +217,18 @@ function StudentDashboard() {
         </main>
       </div>
 
-      <button className="chat-float-btn" onClick={() => setShowChat(!showChat)}>
+      <button className="chat-float-btn" onClick={() => {
+        setSelectedChat(null);
+        setShowChat(!showChat);
+      }}>
         💬
       </button>
 
       {showChat && (
         <ChatModal
-          onClose={() => {
-            setShowChat(false);
-            setInitialMessages(null);
-          }}
+          onClose={handleChatClose}
           cvData={cvDataForChat}
-          initialMessages={initialMessages}
+          initialChat={selectedChat}
         />
       )}
 

@@ -3,19 +3,20 @@ import { useState, useEffect, useRef } from 'react';
 
 const BASE_URL = 'http://localhost:5000/api';
 
-function ChatModal({ onClose, cvData, initialMessages }) {
+function ChatModal({ onClose, cvData, initialChat }) {
   const [messages, setMessages] = useState(
-    initialMessages || [
+    initialChat?.messages || [
       {
         role: 'assistant',
         content: cvData?.score
-          ? `Hi ${cvData.filename ? '! I can see your CV **' + cvData.filename + '**' : ''}! 🎓 Your CV score is **${cvData.score}/100** and I found these skills: ${cvData.skills?.join(', ')}. I'm ready to help you improve your profile and find the perfect internship. What would you like to know?`
-          : "Hi! I'm your AI Career Coach. Upload your CV first so I can give you personalized advice! How can I help you today? 🎓"
+          ? `Hi! 🎓 I can see your CV **${cvData.filename}** with a score of **${cvData.score}/100**. Your skills include: ${cvData.skills?.join(', ')}. Ask me anything about your CV or career!`
+          : "Hi! I'm your AI Career Coach. Upload your CV so I can give you personalized advice! 🎓"
       }
     ]
   );
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [chatId, setChatId] = useState(initialChat?._id || null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -42,12 +43,16 @@ function ChatModal({ onClose, cvData, initialMessages }) {
         body: JSON.stringify({
           message: input,
           history: messages,
-          cvData: cvData || null  // envoie les données du CV au backend
+          cvData: cvData || null,
+          chatId: chatId  // envoie le chatId pour continuer la même conversation
         })
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Error');
+
+      // Sauvegarder le chatId pour les prochains messages
+      if (data.chatId) setChatId(data.chatId);
 
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -124,17 +129,14 @@ function ChatModal({ onClose, cvData, initialMessages }) {
         <input
           type="text"
           placeholder={cvData?.score
-            ? "Ask about your CV score, advice, or career..."
+            ? "Ask about your CV, score, or career..."
             : "Ask me about your career..."}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}
           disabled={loading}
         />
-        <button
-          onClick={handleSend}
-          disabled={loading || !input.trim()}
-        >
+        <button onClick={handleSend} disabled={loading || !input.trim()}>
           {loading ? '⏳' : 'Send'}
         </button>
       </div>
