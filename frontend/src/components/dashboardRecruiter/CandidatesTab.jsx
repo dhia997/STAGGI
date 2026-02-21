@@ -204,7 +204,7 @@ function CandidatesTab({ candidates }) {
               <p style={{ color: '#6b7280', margin: '0 0 20px' }}>{contactModal.university}</p>
 
               <a
-                href={`mailto:${contactModal.email}?subject=Internship Opportunity - STAGII&body=Hello ${contactModal.name},%0D%0A%0D%0AI found your profile on STAGII and would like to discuss an internship opportunity with you.%0D%0A%0D%0ABest regards`}
+                href=subject=Internship Opportunity - STAGII&body=Hello ${contactModal.name},%0D%0A%0D%0AI found your profile on STAGII and would like to discuss an internship opportunity with you.%0D%0A%0D%0ABest regards`}
                 style={{
                   display: 'block', background: 'linear-gradient(135deg, #ec4899, #be185d)',
                   color: 'white', padding: '14px 30px', borderRadius: '10px',
