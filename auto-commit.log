@@ -41203,3 +41203,9 @@ To https://github.com/dhia997/STAGGI.git
 To https://github.com/dhia997/STAGGI.git
    d289627b..bd6c6219  main -> main
 [2026-02-22 00:10:01] Changes committed and pushed successfully
+[main 78d415a1] Auto-commit: 2026-02-22 00:15:02
+ 15 files changed, 506 insertions(+), 143 deletions(-)
+ create mode 100644 frontend/src/components/dashboardRecruiter/NotificationsTab.jsx
+To https://github.com/dhia997/STAGGI.git
+   bd6c6219..78d415a1  main -> main
+[2026-02-22 00:15:02] Changes committed and pushed successfully
