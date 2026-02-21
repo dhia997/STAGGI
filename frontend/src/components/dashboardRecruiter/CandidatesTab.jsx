@@ -192,9 +192,31 @@ function CandidatesTab({ candidates }) {
               <h3 style={{ margin: '0 0 5px' }}>{contactModal.name}</h3>
               <p style={{ color: '#6b7280', margin: '0 0 25px' }}>{contactModal.university}</p>
 
-              {/* Ouvre Gmail directement */}
+              {/* Email avec bouton copier */}
+              <div style={{
+                background: '#f9fafb', border: '2px solid #e5e7eb',
+                borderRadius: '10px', padding: '12px 16px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                marginBottom: '15px'
+              }}>
+                <span style={{ color: '#374151', fontWeight: '600' }}>{contactModal.email}</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(contactModal.email);
+                    alert('✅ Email copied!');
+                  }}
+                  style={{
+                    background: '#7c3aed', color: 'white', border: 'none',
+                    padding: '6px 12px', borderRadius: '6px', cursor: 'pointer',
+                    fontSize: '13px', fontWeight: '600'
+                  }}
+                >
+                  📋 Copy
+                </button>
+              </div>
+
               <a
-                href={`https://mail.google.com/mail/?view=cm&to=${contactModal.email}&su=Internship Opportunity - STAGII&body=Hello ${contactModal.name},%0D%0A%0D%0AI found your profile on STAGII and would like to discuss an internship opportunity with you.%0D%0A%0D%0ABest regards`}
+                href={`https://mail.google.com/mail/#compose?to=${contactModal.email}`}
                 target="_blank"
                 rel="noreferrer"
                 style={{
@@ -205,11 +227,11 @@ function CandidatesTab({ candidates }) {
                   marginBottom: '10px'
                 }}
               >
-                📧 Open Gmail — {contactModal.email}
+                📧 Open Gmail in Browser
               </a>
 
               <p style={{ color: '#9ca3af', fontSize: '12px', marginTop: '10px' }}>
-                Opens Gmail in a new tab with a pre-written message
+                Copy the email or open Gmail directly in browser
               </p>
             </div>
           </div>
